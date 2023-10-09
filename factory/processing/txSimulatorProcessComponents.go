@@ -288,16 +288,28 @@ func (pcf *processComponentsFactory) createArgsTxSimulatorProcessorShard(
 		return args, nil, nil, err
 	}
 
-	vmContainerFactory, err := pcf.createVMFactoryShard(
-		accountsAdapter,
-		syncer.NewMissingTrieNodesNotifier(),
-		builtInFuncFactory.BuiltInFunctionContainer(),
-		esdtTransferParser,
-		pcf.coreData.WasmVMChangeLocker(),
-		smartContractStorageSimulate,
-		builtInFuncFactory.NFTStorageHandler(),
-		builtInFuncFactory.ESDTGlobalSettingsHandler(),
+	shardFactory := &ShardVMFactoryImpl{}
+
+	vmContainerFactory, err := shardFactory.createVMFactoryShard(
+		VMFactoryCreatorArgs{
+			Accounts:              accountsAdapter,
+			Notifier:              syncer.NewMissingTrieNodesNotifier(),
+			BuiltInFuncs:          builtInFuncFactory.BuiltInFunctionContainer(),
+			EsdtTransferParser:    esdtTransferParser,
+			WasmVMChangeLocker:    pcf.coreData.WasmVMChangeLocker(),
+			ConfigSCStorage:       smartContractStorageSimulate,
+			NftStorageHandler:     builtInFuncFactory.NFTStorageHandler(),
+			GlobalSettingsHandler: builtInFuncFactory.ESDTGlobalSettingsHandler(),
+			GasSchedule:           pcf.gasSchedule,
+			CoreData:              pcf.coreData,
+			Data:                  pcf.data,
+			ShardCoordinator:      pcf.bootstrapComponents.ShardCoordinator(),
+			WorkingDir:            pcf.flagsConfig.WorkingDir,
+			ChainRunType:          pcf.chainRunType,
+			VmConfig:              pcf.config.VirtualMachine.Execution,
+		},
 	)
+
 	if err != nil {
 		return args, nil, nil, err
 	}
