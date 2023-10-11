@@ -4,6 +4,7 @@ import (
 	"github.com/multiversx/mx-chain-core-go/core"
 	dataBlock "github.com/multiversx/mx-chain-core-go/data/block"
 	"github.com/multiversx/mx-chain-go/common/disabled"
+	"github.com/multiversx/mx-chain-go/config"
 	bootstrapDisabled "github.com/multiversx/mx-chain-go/epochStart/bootstrap/disabled"
 	"github.com/multiversx/mx-chain-go/factory"
 	"github.com/multiversx/mx-chain-go/genesis"
@@ -131,12 +132,29 @@ func (pcf *processComponentsFactory) createArgsTxSimulatorProcessorForMeta(
 		return args, nil, nil, err
 	}
 
-	vmContainerFactory, err := pcf.createVMFactoryMeta(
-		accountsAdapter,
-		builtInFuncFactory.BuiltInFunctionContainer(),
-		pcf.config.SmartContractsStorageSimulate,
-		builtInFuncFactory.NFTStorageHandler(),
-		builtInFuncFactory.ESDTGlobalSettingsHandler(),
+	metafactory := &MetaVMFactoryImpl{}
+
+	vmContainerFactory, err := metafactory.CreateVMFactory(
+		VMFactoryCreatorArgs{
+			Accounts:              accountsAdapter,
+			Notifier:              nil,
+			BuiltInFuncs:          builtInFuncFactory.BuiltInFunctionContainer(),
+			EsdtTransferParser:    nil,
+			WasmVMChangeLocker:    nil,
+			ConfigSCStorage:       pcf.config.SmartContractsStorageSimulate,
+			NftStorageHandler:     builtInFuncFactory.NFTStorageHandler(),
+			GlobalSettingsHandler: builtInFuncFactory.ESDTGlobalSettingsHandler(),
+			GasSchedule:           nil,
+			CoreData:              nil,
+			Data:                  nil,
+			Crypto:                nil,
+			State:                 nil,
+			ShardCoordinator:      nil,
+			WorkingDir:            "",
+			ChainRunType:          "",
+			VmConfig:              config.VirtualMachineConfig{},
+			SystemSCConfig:        nil,
+		},
 	)
 	if err != nil {
 		return args, nil, nil, err

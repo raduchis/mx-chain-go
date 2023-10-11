@@ -153,7 +153,10 @@ func (pcf *processComponentsFactory) newShardBlockProcessor(
 	shardFactory = &ShardVMFactoryImpl{}
 	//TODO: refactor this with creators and runTypeComponents
 	if pcf.chainRunType == common.ChainRunTypeSovereign {
-
+		shardFactory = &SovereignVMFactoryImpl{
+			shardVMFactory: ShardVMFactoryImpl{},
+			metaVMFactory:  MetaVMFactoryImpl{},
+		}
 	}
 	vmFactory, err := shardFactory.CreateVMFactory(
 		VMFactoryCreatorArgs{
@@ -183,12 +186,9 @@ func (pcf *processComponentsFactory) newShardBlockProcessor(
 		return nil, err
 	}
 
-	//TODO: refactor this with creators and runTypeComponents
-	if pcf.chainRunType == common.ChainRunTypeSovereign {
-		err = pcf.AddSystemVMToContainer(vmContainer, builtInFuncFactory)
-		if err != nil {
-			return nil, err
-		}
+	err = shardFactory.AddAdditionalVMs(vmContainer)
+	if err != nil {
+		return nil, err
 	}
 
 	err = builtInFuncFactory.SetPayableHandler(vmFactory.BlockChainHookImpl())
@@ -475,10 +475,6 @@ func (pcf *processComponentsFactory) newShardBlockProcessor(
 		blockProcessor:         blockProcessor,
 		vmFactoryForProcessing: vmFactory,
 	}, nil
-}
-
-func (pcf *processComponentsFactory) AddSystemVMToContainer(vmContainer process.VirtualMachinesContainer, builtInFuncFactory vmcommon.BuiltInFunctionFactory) error {
-
 }
 
 func (pcf *processComponentsFactory) createTransactionCoordinator(
@@ -1076,6 +1072,7 @@ type VMFactoryCreatorArgs struct {
 // VMFactoryCreator is an interface for creating a VMFactory
 type VMFactoryCreator interface {
 	CreateVMFactory(args VMFactoryCreatorArgs) (process.VirtualMachinesContainerFactory, error)
+	AddAdditionalVMs(vmContainer process.VirtualMachinesContainer) error
 }
 
 // ShardVMFactoryImpl is an implementation of VMFactoryCreator
@@ -1087,31 +1084,31 @@ func (svmf *ShardVMFactoryImpl) CreateVMFactory(args VMFactoryCreatorArgs) (proc
 	return svmf.createVMFactoryShard(args)
 }
 
+// AddAdditionalVMs adds additional VMs to the VMContainer
+func (svmf *ShardVMFactoryImpl) AddAdditionalVMs(_ process.VirtualMachinesContainer) error {
+	return nil
+}
+
 // SovereignVMFactoryImpl is an implementation of VMFactoryCreator
 type SovereignVMFactoryImpl struct {
 	shardVMFactory ShardVMFactoryImpl
 	metaVMFactory  MetaVMFactoryImpl
+	metaFactory    process.VirtualMachinesContainerFactory
 }
 
 // CreateVMFactory creates a VMFactory
 func (svmf *SovereignVMFactoryImpl) CreateVMFactory(args VMFactoryCreatorArgs) (process.VirtualMachinesContainerFactory, error) {
-	vmFactory := svmf.shardVMFactory.createVMFactoryShard(args)
-
-	metaStorage := pcf.config.SmartContractsStorage
-	metaStorage.DB.FilePath = metaStorage.DB.FilePath + "_meta"
-
-	vmFactoryMeta, err := pcf.createVMFactoryMeta(
-		pcf.state.AccountsAdapter(),
-		builtInFuncFactory.BuiltInFunctionContainer(),
-		metaStorage,
-		builtInFuncFactory.NFTStorageHandler(),
-		builtInFuncFactory.ESDTGlobalSettingsHandler(),
-	)
+	metaFactory, err := svmf.metaVMFactory.CreateVMFactory(args)
 	if err != nil {
-		return err
+		return nil, err
 	}
+	svmf.metaFactory = metaFactory
+	return svmf.shardVMFactory.CreateVMFactory(args)
+}
 
-	vmContainerMeta, err := vmFactoryMeta.Create()
+// AddAdditionalVMs adds additional VMs to the VMContainer
+func (svmf *SovereignVMFactoryImpl) AddAdditionalVMs(vmContainer process.VirtualMachinesContainer) error {
+	vmContainerMeta, err := svmf.metaFactory.Create()
 	if err != nil {
 		return err
 	}
@@ -1186,6 +1183,11 @@ type MetaVMFactoryImpl struct {
 // CreateVMFactory creates a VMFactory
 func (mvf *MetaVMFactoryImpl) CreateVMFactory(args VMFactoryCreatorArgs) (process.VirtualMachinesContainerFactory, error) {
 	return mvf.createVMFactoryMeta(args)
+}
+
+// AddAdditionalVMs adds additional VMs to the VMContainer
+func (svmf *MetaVMFactoryImpl) AddAdditionalVMs(vmContainer process.VirtualMachinesContainer) error {
+	return nil
 }
 
 func (pcf *MetaVMFactoryImpl) createVMFactoryMeta(args VMFactoryCreatorArgs) (process.VirtualMachinesContainerFactory, error) {
