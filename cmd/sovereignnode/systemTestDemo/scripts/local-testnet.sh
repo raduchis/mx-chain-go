@@ -24,9 +24,11 @@ cloneDependencies(){
   mkdir "$TESTNET_DIR"
 
   git clone https://github.com/multiversx/mx-chain-go "$TESTNET_DIR/mx-chain-go"
-  checkoutStableVersion mx-chain-go 0bcc42220f436b40db3f15cb611e2713d43c04fa
+  checkoutStableVersion mx-chain-go eee6c9178bcc40600f91dfca2bcdc1ba3de57b73
 
   git clone https://github.com/multiversx/mx-chain-deploy-go "$TESTNET_DIR/mx-chain-deploy-go"
+  checkoutStableVersion mx-chain-deploy-go 88f0f14ba3a2f2f0221a9ebea47878713c7f9e87
+
   git clone https://github.com/multiversx/mx-chain-proxy-go "$TESTNET_DIR/mx-chain-proxy-go"
 }
 

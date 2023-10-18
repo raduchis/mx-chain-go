@@ -1,9 +1,9 @@
 SubscribedEvents = [
-    { Identifier = "deposit", Addresses = ["erd1qyu5wthldzr8wx5c9ucg8kjagg0jfs53s8nr3zpz3hypefsdd8ssycr6th"] }
+    { Identifier = "deposit", Addresses = ["erd1qqqqqqqqqqqqqpgqtpvpj5udf7rjjddkvpa3uuqrpnekxm27pr9syaut7c"] }
 ]
 
 [WebSocket]
-    Url = "localhost:22111"
+    Url = "localhost:22111" #ip from the observer
     # Possible values: json, gogo protobuf. Should be compatible with mx-chain-node outport driver config
     MarshallerType = "gogo protobuf"
     # Retry duration (receive/send ack signal) in seconds

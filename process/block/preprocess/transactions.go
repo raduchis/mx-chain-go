@@ -1831,6 +1831,7 @@ func (txs *transactions) addTxsWithinBandwidth(
 			continue
 		}
 		if gasEstimation+gasInShard > totalGasBandwidth {
+			log.Debug("addTxsWithinBandwidth: gas bandwidth exceeded", "gasInShard", gasInShard/process.Billion, "tx", tx.Tx.GetGasLimit())
 			remainingTxs = append(remainingTxs, additionalTxs[i:]...)
 			break
 		}

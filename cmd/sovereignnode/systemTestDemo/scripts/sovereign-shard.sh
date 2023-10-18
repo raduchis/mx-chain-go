@@ -20,10 +20,11 @@ cloneDependencies(){
 
   git clone https://github.com/multiversx/mx-chain-go "$SOVEREIGN_DIR/mx-chain-go"
   cd $SOVEREIGN_DIR/mx-chain-go
-  git checkout 0bcc42220f436b40db3f15cb611e2713d43c04fa
+  git checkout eee6c9178bcc40600f91dfca2bcdc1ba3de57b73
   cd ../..
 
   git clone https://github.com/multiversx/mx-chain-deploy-go "$SOVEREIGN_DIR/mx-chain-deploy-go"
+  checkoutStableVersion mx-chain-deploy-go 88f0f14ba3a2f2f0221a9ebea47878713c7f9e87
   git clone https://github.com/multiversx/mx-chain-proxy-go "$SOVEREIGN_DIR/mx-chain-proxy-go"
 }
 
