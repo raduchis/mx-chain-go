@@ -61,14 +61,14 @@ func (sp *scrProcessor) createIncomingSCRs(events []data.EventHandler) ([]*scrIn
 				errInvalidNumTopicsIncomingEvent, idx, len(topics))
 		}
 
-		log.Info("createIncomingSCRs - after check")
+		log.Debug("createIncomingSCRs - after check")
 		receivedEventData, err := getEventData(event.GetData())
 		if err != nil {
 			return nil, err
 		}
-		log.Info("createIncomingSCRs - after getEventData")
+		log.Debug("createIncomingSCRs - after getEventData")
 		scrData := createSCRData(topics)
-		log.Info("createIncomingSCRs - after createSCRData")
+		log.Debug("createIncomingSCRs - after createSCRData")
 		scrData = append(scrData, receivedEventData.functionCallWithArgs...)
 
 		scr := &smartContractResult.SmartContractResult{
@@ -80,7 +80,7 @@ func (sp *scrProcessor) createIncomingSCRs(events []data.EventHandler) ([]*scrIn
 			Value:          big.NewInt(0),
 			GasLimit:       receivedEventData.gasLimit,
 		}
-		log.Info("createIncomingSCRs - after scr")
+		log.Debug("createIncomingSCRs - after scr")
 		hash, err := core.CalculateHash(sp.marshaller, sp.hasher, scr)
 		if err != nil {
 			return nil, err
@@ -92,12 +92,12 @@ func (sp *scrProcessor) createIncomingSCRs(events []data.EventHandler) ([]*scrIn
 		})
 	}
 
-	log.Info("createIncomingSCRs - after for loop", "size", len(scrs))
+	log.Debug("createIncomingSCRs - after for loop", "size", len(scrs))
 	return scrs, nil
 }
 
 func getEventData(data []byte) (*eventData, error) {
-	log.Info("getEventData", "data", string(data))
+	log.Debug("getEventData", "data", string(data))
 	if len(data) == 0 {
 		return nil, errEmptyLogData
 	}
