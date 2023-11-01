@@ -465,12 +465,3 @@ func TestIncomingHeaderHandler_AddHeader(t *testing.T) {
 	require.True(t, wasAddedInHeaderPool)
 	require.True(t, wasAddedInTxPool)
 }
-
-func TestIncomingHeaderHandler_ConvertTopics(t *testing.T) {
-	t.Parallel()
-
-	topicBytes, _ := hex.DecodeString("0000000f4153485745474c442d39336465373100000000000000000000000164")
-	newBytes := ConvertTopics(topicBytes)
-
-	require.Equal(t, 3, len(newBytes))
-}

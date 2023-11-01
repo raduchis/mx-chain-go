@@ -13,3 +13,9 @@ type TransactionPool interface {
 	AddData(key []byte, data interface{}, sizeInBytes int, cacheId string)
 	IsInterfaceNil() bool
 }
+
+// TopicsConverterHandler is an interface that will convert topics from a byte array to
+type TopicsConverterHandler interface {
+	ConvertTopics(topicArray []byte) [][]byte
+	IsInterfaceNil() bool
+}

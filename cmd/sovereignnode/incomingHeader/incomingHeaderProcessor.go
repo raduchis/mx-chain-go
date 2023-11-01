@@ -47,9 +47,10 @@ func NewIncomingHeaderProcessor(args ArgsIncomingHeaderProcessor) (*incomingHead
 	}
 
 	scrProc := &scrProcessor{
-		txPool:     args.TxPool,
-		marshaller: args.Marshaller,
-		hasher:     args.Hasher,
+		txPool:          args.TxPool,
+		marshaller:      args.Marshaller,
+		hasher:          args.Hasher,
+		topicsConverter: NewESDTTokenPaymentTopicConverter(),
 	}
 
 	extendedHearProc := &extendedHeaderProcessor{
