@@ -1448,6 +1448,8 @@ func createEmptyMiniBlockFromMiniBlock(miniBlock *block.MiniBlock) *block.MiniBl
 	}
 }
 
+const minTransactionsToTake = 90000
+
 func (txs *transactions) computeSortedTxs(
 	sndShardId uint32,
 	dstShardId uint32,
@@ -1464,10 +1466,43 @@ func (txs *transactions) computeSortedTxs(
 	sortedTransactionsProvider := createSortedTransactionsProvider(txShardPool)
 	log.Debug("computeSortedTxs.GetSortedTransactions")
 	sortedTxs := sortedTransactionsProvider.GetSortedTransactions()
+	log.Debug("computeSortedTxs.GetSortedTransactions done", "num txs", len(sortedTxs))
+
+	// maybe there are some txs in the pool... just process them
+	if len(sortedTxs) < 10 {
+		selectedTxs, remainingTxs := txs.preFilterTransactionsWithMoveBalancePriority(sortedTxs, gasBandwidth)
+		txs.sortTransactionsBySenderAndNonce(selectedTxs, randomness)
+		return selectedTxs, remainingTxs, nil
+	}
+
+	if len(sortedTxs) < minTransactionsToTake {
+		log.Debug("computeSortedTxs.GetSortedTransactions exiting", "num txs", len(sortedTxs))
+		return make([]*txcache.WrappedTransaction, 0), make([]*txcache.WrappedTransaction, 0), nil
+	}
 
 	// TODO: this could be moved to SortedTransactionsProvider
 	selectedTxs, remainingTxs := txs.preFilterTransactionsWithMoveBalancePriority(sortedTxs, gasBandwidth)
 	txs.sortTransactionsBySenderAndNonce(selectedTxs, randomness)
+
+	if len(selectedTxs) > 2 {
+		startNonce := selectedTxs[0].Tx.GetNonce()
+		lastNonce := selectedTxs[len(selectedTxs)-1].Tx.GetNonce()
+		if int(lastNonce-startNonce) > len(selectedTxs) {
+			log.Debug("computeSortedTxs: nonces are not continuous",
+				"start nonce", startNonce,
+				"last nonce", lastNonce,
+				"num txs", len(selectedTxs))
+			for i := 0; i < len(selectedTxs); i++ {
+				if selectedTxs[i].Tx.GetNonce() != startNonce+uint64(i) {
+					log.Debug("missing: tx nonce",
+						"index", i,
+						"nonce", selectedTxs[i].Tx.GetNonce())
+					break
+				}
+			}
+			return make([]*txcache.WrappedTransaction, 0), make([]*txcache.WrappedTransaction, 0), nil
+		}
+	}
 
 	return selectedTxs, remainingTxs, nil
 }
