@@ -3,6 +3,11 @@ package preprocess
 import (
 	"bytes"
 	"errors"
+	"fmt"
+	"os"
+	"runtime"
+	"runtime/debug"
+	"runtime/pprof"
 	"time"
 
 	"github.com/multiversx/mx-chain-core-go/core"
@@ -28,6 +33,17 @@ func (txs *transactions) createAndProcessMiniBlocksFromMeV2(
 	defer func() {
 		go txs.notifyTransactionProviderIfNeeded()
 	}()
+
+	f, err := os.Create(fmt.Sprintf("cpu-profile-%d-%d.pprof", time.Now().Unix(), len(sortedTxs)))
+	if err != nil {
+		log.Error("could not create CPU profile", "error", err)
+	}
+
+	if len(sortedTxs) > 100 {
+		debug.SetGCPercent(-1)
+
+		pprof.StartCPUProfile(f)
+	}
 
 	remainingTxs := make([]*txcache.WrappedTransaction, 0)
 	for index := range sortedTxs {
@@ -90,6 +106,12 @@ func (txs *transactions) createAndProcessMiniBlocksFromMeV2(
 
 	miniBlocks := txs.getMiniBlockSliceFromMapV2(mbInfo.mapMiniBlocks)
 	txs.displayProcessingResults(miniBlocks, len(sortedTxs), mbInfo)
+
+	if len(sortedTxs) > 100 {
+		pprof.StopCPUProfile()
+	}
+
+	runtime.GC()
 
 	log.Debug("createAndProcessMiniBlocksFromMeV2 has been finished")
 

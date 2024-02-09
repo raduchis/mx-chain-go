@@ -62,6 +62,7 @@ type transactions struct {
 	emptyAddress                 []byte
 	txTypeHandler                process.TxTypeHandler
 	scheduledTxsExecutionHandler process.ScheduledTxsExecutionHandler
+	shouldProcessAllTxs          bool
 }
 
 // ArgsTransactionPreProcessor holds the arguments to create a txs pre processor
@@ -1091,10 +1092,10 @@ func (txs *transactions) CreateAndProcessMiniBlocks(haveTime func() bool, random
 		"time [s]", elapsedTime,
 	)
 
-	if txs.blockTracker.ShouldSkipMiniBlocksCreationFromSelf() {
-		log.Debug("CreateAndProcessMiniBlocks global stuck")
-		return make(block.MiniBlockSlice, 0), nil
-	}
+	//if txs.blockTracker.ShouldSkipMiniBlocksCreationFromSelf() {
+	//	log.Debug("CreateAndProcessMiniBlocks global stuck")
+	//	return make(block.MiniBlockSlice, 0), nil
+	//}
 
 	startTime = time.Now()
 	miniBlocks, remainingTxs, mapSCTxs, err := txs.createAndProcessMiniBlocksFromMe(
@@ -1448,7 +1449,7 @@ func createEmptyMiniBlockFromMiniBlock(miniBlock *block.MiniBlock) *block.MiniBl
 	}
 }
 
-const minTransactionsToTake = 90000
+const minTransactionsToTake = 80000
 
 func (txs *transactions) computeSortedTxs(
 	sndShardId uint32,
@@ -1472,10 +1473,11 @@ func (txs *transactions) computeSortedTxs(
 	if len(sortedTxs) < 10 {
 		selectedTxs, remainingTxs := txs.preFilterTransactionsWithMoveBalancePriority(sortedTxs, gasBandwidth)
 		txs.sortTransactionsBySenderAndNonce(selectedTxs, randomness)
+		txs.shouldProcessAllTxs = false
 		return selectedTxs, remainingTxs, nil
 	}
 
-	if len(sortedTxs) < minTransactionsToTake {
+	if !txs.shouldProcessAllTxs && len(sortedTxs) < minTransactionsToTake {
 		log.Debug("computeSortedTxs.GetSortedTransactions exiting", "num txs", len(sortedTxs))
 		return make([]*txcache.WrappedTransaction, 0), make([]*txcache.WrappedTransaction, 0), nil
 	}
@@ -1483,7 +1485,7 @@ func (txs *transactions) computeSortedTxs(
 	// TODO: this could be moved to SortedTransactionsProvider
 	selectedTxs, remainingTxs := txs.preFilterTransactionsWithMoveBalancePriority(sortedTxs, gasBandwidth)
 	txs.sortTransactionsBySenderAndNonce(selectedTxs, randomness)
-
+	log.Debug("computeSortedTxs.GetSortedTransactions DOING IT!", "num txs", len(sortedTxs))
 	if len(selectedTxs) > 2 {
 		startNonce := selectedTxs[0].Tx.GetNonce()
 		lastNonce := selectedTxs[len(selectedTxs)-1].Tx.GetNonce()
@@ -1503,7 +1505,7 @@ func (txs *transactions) computeSortedTxs(
 			return make([]*txcache.WrappedTransaction, 0), make([]*txcache.WrappedTransaction, 0), nil
 		}
 	}
-
+	txs.shouldProcessAllTxs = true
 	return selectedTxs, remainingTxs, nil
 }
 
