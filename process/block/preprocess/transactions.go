@@ -62,7 +62,6 @@ type transactions struct {
 	emptyAddress                 []byte
 	txTypeHandler                process.TxTypeHandler
 	scheduledTxsExecutionHandler process.ScheduledTxsExecutionHandler
-	shouldProcessAllTxs          bool
 }
 
 // ArgsTransactionPreProcessor holds the arguments to create a txs pre processor
@@ -1449,8 +1448,6 @@ func createEmptyMiniBlockFromMiniBlock(miniBlock *block.MiniBlock) *block.MiniBl
 	}
 }
 
-const minTransactionsToTake = 80000
-
 func (txs *transactions) computeSortedTxs(
 	sndShardId uint32,
 	dstShardId uint32,
@@ -1473,12 +1470,20 @@ func (txs *transactions) computeSortedTxs(
 	if len(sortedTxs) < 10 {
 		selectedTxs, remainingTxs := txs.preFilterTransactionsWithMoveBalancePriority(sortedTxs, gasBandwidth)
 		txs.sortTransactionsBySenderAndNonce(selectedTxs, randomness)
-		txs.shouldProcessAllTxs = false
 		return selectedTxs, remainingTxs, nil
 	}
 
-	if !txs.shouldProcessAllTxs && len(sortedTxs) < minTransactionsToTake {
-		log.Debug("computeSortedTxs.GetSortedTransactions exiting", "num txs", len(sortedTxs))
+	shouldProcess := false
+
+	for _, tx := range sortedTxs {
+		if string(tx.Tx.GetData()) == "pleaseProcess" {
+			shouldProcess = true
+			break
+		}
+	}
+
+	if !shouldProcess {
+		log.Info("computeSortedTxs: should not process yet")
 		return make([]*txcache.WrappedTransaction, 0), make([]*txcache.WrappedTransaction, 0), nil
 	}
 
@@ -1486,26 +1491,25 @@ func (txs *transactions) computeSortedTxs(
 	selectedTxs, remainingTxs := txs.preFilterTransactionsWithMoveBalancePriority(sortedTxs, gasBandwidth)
 	txs.sortTransactionsBySenderAndNonce(selectedTxs, randomness)
 	log.Debug("computeSortedTxs.GetSortedTransactions DOING IT!", "num txs", len(sortedTxs))
-	if len(selectedTxs) > 2 {
-		startNonce := selectedTxs[0].Tx.GetNonce()
-		lastNonce := selectedTxs[len(selectedTxs)-1].Tx.GetNonce()
-		if int(lastNonce-startNonce) > len(selectedTxs) {
-			log.Debug("computeSortedTxs: nonces are not continuous",
-				"start nonce", startNonce,
-				"last nonce", lastNonce,
-				"num txs", len(selectedTxs))
-			for i := 0; i < len(selectedTxs); i++ {
-				if selectedTxs[i].Tx.GetNonce() != startNonce+uint64(i) {
-					log.Debug("missing: tx nonce",
-						"index", i,
-						"nonce", selectedTxs[i].Tx.GetNonce())
-					break
-				}
-			}
-			return make([]*txcache.WrappedTransaction, 0), make([]*txcache.WrappedTransaction, 0), nil
-		}
-	}
-	txs.shouldProcessAllTxs = true
+	//if len(selectedTxs) > 2 {
+	//	startNonce := selectedTxs[0].Tx.GetNonce()
+	//	lastNonce := selectedTxs[len(selectedTxs)-1].Tx.GetNonce()
+	//	if int(lastNonce-startNonce) > len(selectedTxs) {
+	//		log.Debug("computeSortedTxs: nonces are not continuous",
+	//			"start nonce", startNonce,
+	//			"last nonce", lastNonce,
+	//			"num txs", len(selectedTxs))
+	//		for i := 0; i < len(selectedTxs); i++ {
+	//			if selectedTxs[i].Tx.GetNonce() != startNonce+uint64(i) {
+	//				log.Debug("missing: tx nonce",
+	//					"index", i,
+	//					"nonce", selectedTxs[i].Tx.GetNonce())
+	//				break
+	//			}
+	//		}
+	//		return make([]*txcache.WrappedTransaction, 0), make([]*txcache.WrappedTransaction, 0), nil
+	//	}
+	//}
 	return selectedTxs, remainingTxs, nil
 }
 
