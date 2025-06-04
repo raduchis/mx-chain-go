@@ -234,7 +234,7 @@ func (tr *patriciaMerkleTrie) insertBatch(sortedDataForInsertion []core.TrieData
 	}
 
 	for _, data := range sortedDataForInsertion {
-		log.Trace("inserting data", "key", data.Key, "value", data.Value, "version", data.Version)
+		log.Trace("inserting data", "key", string(data.Key), "value", data.Value, "version", data.Version)
 	}
 
 	rootData := tr.GetRootData()
@@ -319,7 +319,7 @@ func (tr *patriciaMerkleTrie) deleteBatch(data []core.TrieData) error {
 	}
 
 	for _, d := range data {
-		log.Trace("deleting data", "key", d.Key, "value", d.Value, "version", d.Version)
+		log.Trace("deleting data", "key", string(d.Key), "value", d.Value, "version", d.Version)
 	}
 
 	rootData := tr.GetRootData()
