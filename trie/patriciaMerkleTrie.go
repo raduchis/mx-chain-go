@@ -233,6 +233,10 @@ func (tr *patriciaMerkleTrie) insertBatch(sortedDataForInsertion []core.TrieData
 		return nil
 	}
 
+	for _, data := range sortedDataForInsertion {
+		log.Trace("inserting data", "key", data.Key, "value", data.Value, "version", data.Version)
+	}
+
 	rootData := tr.GetRootData()
 	oldRootHash := tr.getOldRootHash(rootData)
 	var changedHashes [][]byte
@@ -314,6 +318,10 @@ func (tr *patriciaMerkleTrie) deleteBatch(data []core.TrieData) error {
 		return nil
 	}
 
+	for _, d := range data {
+		log.Trace("deleting data", "key", d.Key, "value", d.Value, "version", d.Version)
+	}
+
 	rootData := tr.GetRootData()
 	if check.IfNil(rootData.root) {
 		return nil
@@ -369,6 +377,7 @@ func (tr *patriciaMerkleTrie) RootHash() ([]byte, error) {
 	tr.updateTrieMutex.Lock()
 	defer tr.updateTrieMutex.Unlock()
 
+	log.Trace("get root hash for trie", "identifier", tr.identifier)
 	err := tr.updateTrie()
 	if err != nil {
 		return nil, err
