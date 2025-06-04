@@ -232,7 +232,10 @@ func (adb *AccountsDB) SaveAccount(account vmcommon.AccountHandler) error {
 	if check.IfNil(account) {
 		return fmt.Errorf("%w in accountsDB SaveAccount", ErrNilAccountHandler)
 	}
-
+	log.Trace("accountsDB.SaveAccount started", "acc", account.AddressBytes())
+	if hex.EncodeToString(account.AddressBytes()) == "000000000000000005000320a9313aab858128f1d646f914ff89170b8703a427" {
+		log.Trace("print dtr", "tr", adb.dataTries.Get(account.AddressBytes()))
+	}
 	// this is a critical section, do not remove the mutex
 	adb.mutOp.Lock()
 	defer adb.mutOp.Unlock()
