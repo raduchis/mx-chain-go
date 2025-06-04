@@ -236,6 +236,10 @@ func (adb *AccountsDB) getMainTrie() common.Trie {
 	return adb.mainTrie
 }
 
+type trieString interface {
+	ToString() string
+}
+
 // SaveAccount saves in the trie all changes made to the account.
 func (adb *AccountsDB) SaveAccount(account vmcommon.AccountHandler) error {
 	if check.IfNil(account) {
@@ -244,7 +248,10 @@ func (adb *AccountsDB) SaveAccount(account vmcommon.AccountHandler) error {
 	log.Trace("accountsDB.SaveAccount started", "acc", account.AddressBytes())
 	log.Trace("accountsDB.SaveAccount started", "acc", account.AddressBytes())
 	if hex.EncodeToString(account.AddressBytes()) == "000000000000000005000320a9313aab858128f1d646f914ff89170b8703a427" {
-		log.Trace("print dtr", "tr", adb.dataTries.Get(account.AddressBytes()))
+		dtr := adb.dataTries.Get(account.AddressBytes())
+		if !check.IfNil(dtr) {
+			log.Trace("print dtr", "tr", dtr.(trieString).ToString())
+		}
 	}
 	// this is a critical section, do not remove the mutex
 	adb.mutOp.Lock()
