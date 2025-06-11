@@ -19,6 +19,8 @@ const (
 	LvlDBSerial = common.LvlDBSerial
 	// MemoryDB represents an in memory storage identifier
 	MemoryDB = common.MemoryDB
+	// RocksDB represents a rocksDB storage identifier
+	RocksDB = "RocksDB"
 )
 
 // Shard id provider types that are currently supported

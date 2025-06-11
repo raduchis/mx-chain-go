@@ -115,6 +115,7 @@
         SizeInBytes = 104857600 #100MB
     [MiniBlocksStorage.DB]
         FilePath = "MiniBlocks"
+        # Type can be "LvlDB", "LvlDBSerial", "MemoryDB" or "RocksDB"
         Type = "LvlDBSerial"
         BatchDelaySeconds = 2
         MaxBatchSize = 100

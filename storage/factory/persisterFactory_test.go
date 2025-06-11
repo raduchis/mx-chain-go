@@ -152,6 +152,27 @@ func TestPersisterFactory_Create_ConfigSaveToFilePath(t *testing.T) {
 		require.False(t, os.IsNotExist(err))
 	})
 
+	t.Run("should write toml config file for rocksdb", func(t *testing.T) {
+		t.Parallel()
+
+		dbConfig := createDefaultBasePersisterConfig()
+		dbConfig.Type = string(storageunit.RocksDB)
+		pf, _ := factory.NewPersisterFactory(dbConfig)
+
+		dir := t.TempDir()
+		path := dir + "storer/"
+
+		p, err := pf.Create(path)
+		require.NotNil(t, p)
+		require.Nil(t, err)
+
+		assert.True(t, strings.Contains(fmt.Sprintf("%T", p), "*rocksdb.DB"))
+
+		configPath := factory.GetPersisterConfigFilePath(path)
+		_, err = os.Stat(configPath)
+		require.False(t, os.IsNotExist(err))
+	})
+
 	t.Run("should not write toml config file for memory db", func(t *testing.T) {
 		t.Parallel()
 

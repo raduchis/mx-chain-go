@@ -2,6 +2,7 @@ package database
 
 import (
 	"github.com/multiversx/mx-chain-go/storage"
+	"github.com/multiversx/mx-chain-go/storage/database/rocksdb"
 	"github.com/multiversx/mx-chain-storage-go/leveldb"
 	"github.com/multiversx/mx-chain-storage-go/memorydb"
 	"github.com/multiversx/mx-chain-storage-go/sharded"
@@ -31,6 +32,12 @@ func NewLevelDB(path string, batchDelaySeconds int, maxBatchSize int, maxOpenFil
 // It creates the files in the location given as parameter
 func NewSerialDB(path string, batchDelaySeconds int, maxBatchSize int, maxOpenFiles int) (s *leveldb.SerialDB, err error) {
 	return leveldb.NewSerialDB(path, batchDelaySeconds, maxBatchSize, maxOpenFiles)
+}
+
+// NewRocksDB is a constructor for the rocksdb persister
+// It creates the files in the location given as parameter
+func NewRocksDB(path string, batchDelaySeconds int, maxBatchSize int, maxOpenFiles int) (*rocksdb.DB, error) {
+	return rocksdb.NewDB(path, batchDelaySeconds, maxBatchSize, maxOpenFiles)
 }
 
 // NewShardIDProvider is a constructor for shard id provider

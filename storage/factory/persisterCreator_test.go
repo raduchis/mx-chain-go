@@ -136,6 +136,21 @@ func TestPersisterCreator_CreateBasePersister(t *testing.T) {
 
 		assert.True(t, strings.Contains(fmt.Sprintf("%T", p), "*memorydb.DB"))
 	})
+
+	t.Run("rocksdb", func(t *testing.T) {
+		t.Parallel()
+
+		dbConfig := createDefaultBasePersisterConfig()
+		dbConfig.Type = string(storageunit.RocksDB)
+		pc := factory.NewPersisterCreator(dbConfig)
+
+		dir := t.TempDir()
+		p, err := pc.CreateBasePersister(dir)
+		require.NotNil(t, p)
+		require.Nil(t, err)
+
+		assert.True(t, strings.Contains(fmt.Sprintf("%T", p), "*rocksdb.DB"))
+	})
 }
 
 func TestPersisterCreator_CreateShardIDProvider(t *testing.T) {

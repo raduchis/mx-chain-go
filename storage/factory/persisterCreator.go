@@ -42,6 +42,10 @@ func (pc *persisterCreator) Create(path string) (storage.Persister, error) {
 func (pc *persisterCreator) CreateBasePersister(path string) (storage.Persister, error) {
 	var dbType = storageunit.DBType(pc.conf.Type)
 
+	if dbType == storageunit.RocksDB {
+		return database.NewRocksDB(path, pc.conf.BatchDelaySeconds, pc.conf.MaxBatchSize, pc.conf.MaxOpenFiles)
+	}
+
 	argsDB := factory.ArgDB{
 		DBType:            dbType,
 		Path:              path,

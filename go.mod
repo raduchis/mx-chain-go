@@ -33,8 +33,9 @@ require (
 	github.com/prometheus/client_golang v1.14.0
 	github.com/shirou/gopsutil v3.21.11+incompatible
 	github.com/stretchr/testify v1.10.0
-	github.com/urfave/cli v1.22.16
-	golang.org/x/crypto v0.31.0
+       github.com/urfave/cli v1.22.16
+       github.com/tecbot/gorocksdb v1.20.0
+       golang.org/x/crypto v0.31.0
 	golang.org/x/exp v0.0.0-20230321023759-10a507213a29
 	gopkg.in/go-playground/validator.v8 v8.18.2
 )

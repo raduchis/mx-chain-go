@@ -71,3 +71,23 @@ func TestNewSerialDB(t *testing.T) {
 		_ = instance.Close()
 	})
 }
+
+func TestNewRocksDB(t *testing.T) {
+	t.Parallel()
+
+	t.Run("invalid argument should error", func(t *testing.T) {
+		t.Parallel()
+
+		instance, err := NewRocksDB(t.TempDir(), 0, 0, 0)
+		assert.Nil(t, instance)
+		assert.NotNil(t, err)
+	})
+	t.Run("should work", func(t *testing.T) {
+		t.Parallel()
+
+		instance, err := NewRocksDB(t.TempDir(), 1, 1, 1)
+		assert.NotNil(t, instance)
+		assert.Nil(t, err)
+		_ = instance.Close()
+	})
+}

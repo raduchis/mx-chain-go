@@ -61,10 +61,14 @@ $  cd ../node && ./node
 
 The node binary has some flags defined (for a brief description, the user can use --help flag). Those flags can be used to directly alter the configuration values defined in .toml/.json files and can be used when launching more than one instance of the binary. 
 
-### Running the tests	
-```	
-$ go test ./...	
+### Running the tests
 ```
+$ go test ./...
+```
+
+### Database configuration
+Storage units defined in `config.toml` have a `Type` field under their `DB` section.
+Supported values are `LvlDB`, `LvlDBSerial`, `MemoryDB` and `RocksDB`.
 
 ## Compiling new fields in .proto files (should be updated when required PR will be merged in gogo protobuf master branch):
 1. Download protoc compiler: https://github.com/protocolbuffers/protobuf/releases 
